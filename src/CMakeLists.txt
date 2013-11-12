@@ -20,3 +20,28 @@
 # * You should have received a copy of the GNU General Public License    *
 # * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
 # ************************************************************************
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}
+	            ${CMAKE_CURRENT_SOURCE_DIR})
+
+LINK_DIRECTORIES()
+
+ADD_LIBRARY(PluginManager SHARED
+            Plugin.hh
+            PluginManager.cc   PluginManager.hh
+	    DynamicLibrary.cc  DynamicLibrary.hh)
+
+ADD_LIBRARY(PluginLayer0 SHARED
+	    Plugin.hh
+            LayerInterface.hh
+            PluginLayer0.cc  PluginLayer0.hh)
+
+ADD_LIBRARY(PluginLayer1 SHARED
+	    Plugin.hh
+            LayerInterface.hh
+            PluginLayer1.cc  PluginLayer1.hh)
+
+ADD_EXECUTABLE(loadPlugin main.cc)
+           
+TARGET_LINK_LIBRARIES(loadPlugin PluginManager dl)
+
