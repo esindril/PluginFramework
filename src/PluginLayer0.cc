@@ -38,15 +38,15 @@ int32_t ExitFunc()
 
 
 //------------------------------------------------------------------------------
-// Plugin initialization entry point called by the PluginManager
+// Plugin registration entry point called by the PluginManager
 //------------------------------------------------------------------------------
 PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
 {
-  std::cout << "Initializing PluginLayer0 ..." << std::endl;
+  std::cout << "Register PluginLayer0 ..." << std::endl;
   PF_RegisterParams rp;
   rp.version.major = 0;
   rp.version.minor = 1;
-  rp.layer = PF_Plugin_Layer::Layer::L0;
+  rp.layer = PF_Plugin_Layer::L0;
 
   // Register the PluginLayer0 object provided by the current plugin
   rp.CreateFunc = PluginLayer0::Create;
@@ -66,11 +66,19 @@ PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
 //------------------------------------------------------------------------------
 // Static plugin interface - create object 
 //------------------------------------------------------------------------------
-void* PluginLayer0::Create(PF_ObjectParams* param)
+void* PluginLayer0::Create(PF_PlatformServices* services)
 {
-  // TODO: call the descovery service for the lower layer
+  // Call the descovery service for the lower layer object
+  PF_Discovery_Service discover = { "PluginLayer0", 0};
+  int retc = services->invokeService( "discovery", (void*) &discover);
+
+  if (retc)
+  {
+    std::cerr << "Error while invoking discovery service" << std::endl;
+    return NULL;
+  }
   
-  LayerInterface* lowerLayer = 0;
+  LayerInterface* lowerLayer = static_cast<LayerInterface*>(discover.lowerLayer);
   return new PluginLayer0(lowerLayer);
 }
 
@@ -116,6 +124,6 @@ int32_t
 PluginLayer0::MethodCall()
 {
   std::cout << __PRETTY_FUNCTION__ << " calling method" << std::endl;
-  return 0;
+  return (mLowerLayer ? mLowerLayer->MethodCall() : 0);
 }
 

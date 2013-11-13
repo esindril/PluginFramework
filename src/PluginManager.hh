@@ -92,12 +92,12 @@ public:
   //----------------------------------------------------------------------------
   //! Create a plugin object
   //!
-  //! @param objectType name of the object to be created
+  //! @param objType object type name
   //!
   //! @return pointer to newly create object if successful, otherwise NULL
   //!
   //----------------------------------------------------------------------------
-  void* CreateObject(const std::string& objectType);
+  void* CreateObject(const std::string& objType);
   
   
   //----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ public:
   //----------------------------------------------------------------------------
   //! Method called by the plugin to register the objects it provides
   //!
-  //! @param objType string object identifier
+  //! @param objType object type name
   //! @param params paramters registered by the plugin
   //!
   //! @return 0 if successful, otherwise !0
@@ -143,6 +143,7 @@ public:
   //! Get services provided by the platform i.e. logging
   //----------------------------------------------------------------------------
   PF_PlatformServices& GetPlatformServices() ;
+
   
 private:
   
@@ -179,12 +180,7 @@ private:
   PF_PlatformServices mPlatformServices;
   DynamicLibMap mDynamicLibMap;
   ExitFuncVec mExitFuncVec;
-  
-  RegistrationMap mTempExactMatchMap;  // register exact-match object types
-  RegistrationVec mTempWildCardVec;  // wild card ('*') object types
-  
-  RegistrationMap mExactMatchMap; // register exact-match object types
-  RegistrationVec mWildCardVec; // wild card ('*') object types
+  RegistrationMap mObjectMap; // registered object types by plugins
 };
 
 #endif  // __PF_PLUGIN_MANAGER_HH__

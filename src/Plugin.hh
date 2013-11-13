@@ -39,27 +39,14 @@ struct PF_PlatformServices;
 //! Plugin layer value indicating the layer for which the plugin object is
 //! responsible
 //------------------------------------------------------------------------------
-typedef struct PF_Plugin_Layer
+typedef enum PF_Plugin_Layer
 {
-  enum Layer
-  {
-    L0, // bottom one
-    L1,
-    L2,
-    L3  // top one
-  };
+  L0, // bottom one
+  L1,
+  L2,
+  L3  // top one
 } PF_Plugin_Layer;
   
-
-//------------------------------------------------------------------------------
-//! Information passed to the plugin object from the PluginManager
-//------------------------------------------------------------------------------
-typedef struct PF_ObjectParams
-{
-  const char* objectType;
-  const struct PF_PlatformServices* platformServices;
-} PF_ObjectParams;
-
   
 //------------------------------------------------------------------------------
 //! Plugin version information
@@ -75,7 +62,7 @@ typedef struct PF_PluginAPI_Version
 //! Create and destroy methods to be implemented by the plugin objects. Through
 //! these the PluginManager manages the lifetime of plugin objects
 //------------------------------------------------------------------------------
-typedef void* (*PF_CreateFunc)(PF_ObjectParams*);
+typedef void* (*PF_CreateFunc)(PF_PlatformServices*);
 typedef int32_t (*PF_DestroyFunc)(void*);
 
   
@@ -85,9 +72,10 @@ typedef int32_t (*PF_DestroyFunc)(void*);
 typedef struct PF_RegisterParams
 {
   PF_PluginAPI_Version version;
-  PF_Plugin_Layer::Layer layer;
   PF_CreateFunc CreateFunc;
   PF_DestroyFunc DestroyFunc;
+  PF_Plugin_Layer layer;
+  
 } PF_RegisterParams;
 
 
@@ -97,7 +85,7 @@ typedef struct PF_RegisterParams
 //------------------------------------------------------------------------------
 typedef int32_t (*PF_RegisterFunc)(const char* objType,
                                    const PF_RegisterParams* params);
-
+  
 
 //------------------------------------------------------------------------------
 //! Function pointer calling platform services specified by name. This can be 
@@ -118,6 +106,16 @@ typedef struct PF_PlatformServices
   PF_InvokeServiceFunc invokeService;
 } PF_PlatformServices;
 
+
+//------------------------------------------------------------------------------
+//! Discovery service parameters
+//------------------------------------------------------------------------------
+typedef struct PF_Discovery_Service
+{
+  const char* objType;
+  void* lowerLayer;
+} PF_Discovery_Service;
+  
 
 //------------------------------------------------------------------------------
 //! Exit function pointer returned after registering a new plugin. This is 

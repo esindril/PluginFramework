@@ -1,7 +1,6 @@
 //------------------------------------------------------------------------------
-//! @file PluginLayer1.hh
+//! @file Application.hh
 //! @author Elvin-Alin Sindrilaru <esindril@cern.ch>
-//! @brief Demo plugin implementation for layer 0
 //------------------------------------------------------------------------------
 
 /************************************************************************
@@ -22,71 +21,54 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  ************************************************************************/
 
-#ifndef __PF_PLUGIN_LAYER1_HH__
-#define __PF_PLUGIN_LAYER1_HH__
+#ifndef __PF_APPLICATION_HH__
+#define __PF_APPLICATION_HH__
 
+/*----------------------------------------------------------------------------*/
+#include <map>
 /*----------------------------------------------------------------------------*/
 #include "Plugin.hh"
-#include "LayerInterface.hh"
 /*----------------------------------------------------------------------------*/
 
+//! Forward delcaration
+class LayerInterface;
 
 //------------------------------------------------------------------------------
-//! Class PluginLayer1
+//! Class Application 
 //------------------------------------------------------------------------------
-class PluginLayer1 : public LayerInterface
+class Application
 {
  public:
 
-
-  //----------------------------------------------------------------------------
-  //! Static plugin interface - create plugin object 
-  //----------------------------------------------------------------------------
-  static void* Create(PF_PlatformServices* services);
+  typedef std::map<PF_Plugin_Layer, LayerInterface*> LayerImpMap;
 
 
   //----------------------------------------------------------------------------
-  //! Static plugin interface - destroy plugin object
+  //! Get instance
   //----------------------------------------------------------------------------
-  static int32_t Destroy(void *);
-
+  static Application& GetInstance();
+  
   
   //----------------------------------------------------------------------------
   //! Destructor
   //----------------------------------------------------------------------------
-  virtual ~PluginLayer1();
+  ~Application();
 
-
-  //----------------------------------------------------------------------------
-  //! Impelement LayerInterface method
-  //----------------------------------------------------------------------------
-  virtual int32_t MethodCall();
   
+  //------------------------------------------------------------------------------
+  //! Initialize the plugin stack
+  //------------------------------------------------------------------------------
+  void InitPluginStack();
+
+  LayerImpMap mLayerImp; ///< map between layer and implementation object
 
  private:
 
-  LayerInterface* mLowerLayer; ///< pointer to lower layer interface
-
   //----------------------------------------------------------------------------
   //! Constructor
-  //!
-  //! @param lowerLayer lower layer interface provided by the PluginManager
-  //!
   //----------------------------------------------------------------------------
-  PluginLayer1(LayerInterface* lowerLayer);  
+  Application();
+  
 };
 
-
-//------------------------------------------------------------------------------
-//! Plugin exit function called by the PluginManager when doing cleanup
-//------------------------------------------------------------------------------
-extern "C" int32_t ExitFunc();
-
-
-//------------------------------------------------------------------------------
-//! Plugin registration entry point called by the PluginManager
-//------------------------------------------------------------------------------
-extern "C" PF_ExitFunc PF_initPlugin(const PF_PlatformServices* params);
-
-
-#endif // __PF_PLUGIN_LAYER1_HH__
+# endif // __PF_APPLICATION_HH__

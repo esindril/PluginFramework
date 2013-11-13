@@ -23,8 +23,10 @@
 
 /*----------------------------------------------------------------------------*/
 #include <iostream>
+#include <string.h>
 #include "LayerInterface.hh"
 #include "PluginManager.hh"
+#include "Application.hh"
 /*----------------------------------------------------------------------------*/
 
 
@@ -34,6 +36,33 @@
 int32_t
 InvokeService(const char* serviceName, void* serviceParam)
 {
+  if (strncmp(serviceName, "discovery", strlen(serviceName)) == 0)
+  {
+    // Check if the object requesting a service is already registered
+    auto discover = static_cast<PF_Discovery_Service*>(serviceParam);
+    PluginManager& pm = PluginManager::GetInstance();
+    auto reg_map = pm.GetRegistrationMap();
+    auto reg_obj = reg_map.find(std::string(discover->objType));
+
+    if (reg_obj != reg_map.end())
+    {      
+      // Try to get previous layer implementation if this is not the bottom one
+      if (reg_obj->second.layer - 1 >= 0)
+      {
+        PF_Plugin_Layer search_layer = (PF_Plugin_Layer)(reg_obj->second.layer - 1);
+        Application& app = Application::GetInstance();
+        auto layer_imp = app.mLayerImp.find(search_layer);
+        
+        if (layer_imp != app.mLayerImp.end())
+        {
+          std::cout << "Found the lower layer implementation ..." << std::endl;
+          discover->lowerLayer = static_cast<void*>(layer_imp->second);
+          return 0;
+        }     
+      }
+    }
+  }
+    
   return 0;
 }
 
@@ -52,5 +81,10 @@ int main(int argc, char* argv[])
   PluginManager& pm = PluginManager::GetInstance();
   pm.GetPlatformServices().invokeService = InvokeService;
   pm.LoadAll(argv[1]);
-  pm.InitializeStack();
+
+  Application& app = Application::GetInstance();
+  app.InitPluginStack();
+
+  for (auto impl = app.mLayerImp.begin(); impl != app.mLayerImp.end(); ++impl)
+    impl->second->MethodCall();
 }

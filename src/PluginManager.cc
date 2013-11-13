@@ -28,6 +28,7 @@
 #include <dirent.h>
 /*----------------------------------------------------------------------------*/
 #include "PluginManager.hh"
+#include "LayerInterface.hh"
 #include "DynamicLibrary.hh"
 /*----------------------------------------------------------------------------*/
 
@@ -86,8 +87,7 @@ int32_t PluginManager::Shutdown()
   }
 
   mDynamicLibMap.clear();
-  mExactMatchMap.clear();
-  mWildCardVec.clear();
+  mObjectMap.clear();
   mExitFuncVec.clear();
   return result;
 }
@@ -97,13 +97,12 @@ int32_t PluginManager::Shutdown()
 // The registration params may be received from an external plugin so it is
 // crucial to validate it, because it was never subjected to our tests.
 //------------------------------------------------------------------------------
-static bool IsValid(const char* objectType,
+static bool IsValid(const char* objType,
                     const PF_RegisterParams* params)
 {
-  // No object type specified
-  if (!objectType || !(*objectType))
+  if (!objType)
     return false;
-
+  
   // Plugin does not implement the interface
   if (!params || !params->CreateFunc || !params->DestroyFunc)
     return false;
@@ -134,13 +133,14 @@ PluginManager::InitializePlugin(PF_InitFunc initFunc)
 // Plugin registers the objects that it provides through this function
 //------------------------------------------------------------------------------
 int32_t
-PluginManager::RegisterObject(const char* objectType,
+PluginManager::RegisterObject(const char* objType,
                               const PF_RegisterParams* params)
 {
   // Check parameters
-  if (!IsValid(objectType, params))
+  if (!IsValid(objType, params))
     return -1;
 
+  std::string key = std::string(objType);
   PluginManager& pm = PluginManager::GetInstance();
   
   // Verify that versions match
@@ -152,20 +152,14 @@ PluginManager::RegisterObject(const char* objectType,
     return -1;
   }
   
-  std::string key(objectType);
-
-  // If it's a wild card registration just add it
-  if (key == std::string("*"))
+  // Fail if item already exists (only one can handle)
+  if (pm.mObjectMap.find(key) != pm.mObjectMap.end())
   {
-    pm.mWildCardVec.push_back(*params);
-    return 0;
+    std::cerr << "Error, object type already registered" << std::endl;
+    return -1;
   }
 
-  // Fail if item already exists (only one can handle)
-  if (pm.mExactMatchMap.find(key) != pm.mExactMatchMap.end())
-    return -1;
-
-  pm.mExactMatchMap[key] = *params;
+  pm.mObjectMap[key] = *params;
   return 0;
 }
 
@@ -275,74 +269,28 @@ PluginManager::LoadByPath(const std::string& pluginPath)
   return 0;
 }
 
+
 //------------------------------------------------------------------------------
-// Create object using the loaded plugin handlers
+// Create plugin object for the specified layer
 //------------------------------------------------------------------------------
 void*
-PluginManager::CreateObject(const std::string& objectType)
+PluginManager::CreateObject(const std::string& objType)
 {
-  // "*" is not a valid object type
-  if (objectType == std::string("*"))
-    return NULL;
-
-  // Prepare object params
-  PF_ObjectParams np;
-  np.objectType = objectType.c_str();
-  np.platformServices = &mPlatformServices;
-
-  // Exact match found
-  if (mExactMatchMap.find(objectType) != mExactMatchMap.end())
+  auto iter = mObjectMap.find(objType);
+  
+  if (iter != mObjectMap.end())
   {
-    PF_RegisterParams& rp = mExactMatchMap[objectType];
-    void* object = rp.CreateFunc(&np);
+    PF_RegisterParams& rp = iter->second;
+    void* object = rp.CreateFunc(&mPlatformServices);
     
     if (object)
     {
-      // Register the new plugin object for the appropriate layer
-      
+      // Register the new plugin object 
       return object;
     }
   }
-
-  // Try to find a wild card match
-  for (size_t i = 0; i < mWildCardVec.size(); ++i)
-  {
-    PF_RegisterParams& rp = mWildCardVec[i];
-    void* object = rp.CreateFunc(&np);
-
-    if (object) 
-    {
-      // Promote registration to exactMatc_
-      // (but keep also the wild card registration for other object types)
-      int32_t res = RegisterObject(np.objectType, &rp);
-
-      if (res < 0)
-      {
-        // Should report or log it
-        rp.DestroyFunc(object);
-        return NULL;
-      }
-
-      return object;
-    }
-  }
-  
+ 
   return NULL;
-}
-
-
-
-//------------------------------------------------------------------------------
-//! Initialize the plugin stack
-//------------------------------------------------------------------------------
-int32_t
-PluginManager::InitPluginStack()
-{
-  for (auto plugin = mExactMatchMap.begin(); plugin != mExactMatchMap.end(); ++plugin)
-  {
-    LayerInterface* layer = static_cast<LayerInterface*>(CreateObject(plugin->first));
-    
-  }
 }
 
 
@@ -369,7 +317,7 @@ PluginManager::LoadLibrary(const std::string& path, std::string& error)
 const PluginManager::RegistrationMap&
 PluginManager::GetRegistrationMap() const
 {
-  return mExactMatchMap;
+  return mObjectMap;
 }
 
 

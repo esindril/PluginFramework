@@ -1,7 +1,6 @@
 //------------------------------------------------------------------------------
-//! @file PluginLayer1.hh
+//! @file Application.hh
 //! @author Elvin-Alin Sindrilaru <esindril@cern.ch>
-//! @brief Demo plugin implementation for layer 0
 //------------------------------------------------------------------------------
 
 /************************************************************************
@@ -22,71 +21,68 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  ************************************************************************/
 
-#ifndef __PF_PLUGIN_LAYER1_HH__
-#define __PF_PLUGIN_LAYER1_HH__
 
 /*----------------------------------------------------------------------------*/
-#include "Plugin.hh"
+#include <iostream>
+/*----------------------------------------------------------------------------*/
+#include "Application.hh"
 #include "LayerInterface.hh"
+#include "PluginManager.hh"
 /*----------------------------------------------------------------------------*/
 
 
 //------------------------------------------------------------------------------
-//! Class PluginLayer1
+// Constructor
 //------------------------------------------------------------------------------
-class PluginLayer1 : public LayerInterface
+Application::Application()
 {
- public:
-
-
-  //----------------------------------------------------------------------------
-  //! Static plugin interface - create plugin object 
-  //----------------------------------------------------------------------------
-  static void* Create(PF_PlatformServices* services);
-
-
-  //----------------------------------------------------------------------------
-  //! Static plugin interface - destroy plugin object
-  //----------------------------------------------------------------------------
-  static int32_t Destroy(void *);
-
-  
-  //----------------------------------------------------------------------------
-  //! Destructor
-  //----------------------------------------------------------------------------
-  virtual ~PluginLayer1();
-
-
-  //----------------------------------------------------------------------------
-  //! Impelement LayerInterface method
-  //----------------------------------------------------------------------------
-  virtual int32_t MethodCall();
-  
-
- private:
-
-  LayerInterface* mLowerLayer; ///< pointer to lower layer interface
-
-  //----------------------------------------------------------------------------
-  //! Constructor
-  //!
-  //! @param lowerLayer lower layer interface provided by the PluginManager
-  //!
-  //----------------------------------------------------------------------------
-  PluginLayer1(LayerInterface* lowerLayer);  
-};
+  // empty
+}
 
 
 //------------------------------------------------------------------------------
-//! Plugin exit function called by the PluginManager when doing cleanup
+// Destructor
 //------------------------------------------------------------------------------
-extern "C" int32_t ExitFunc();
+Application::~Application()
+{
+  // empty
+}
 
 
 //------------------------------------------------------------------------------
-//! Plugin registration entry point called by the PluginManager
+// Get instance
 //------------------------------------------------------------------------------
-extern "C" PF_ExitFunc PF_initPlugin(const PF_PlatformServices* params);
+Application&
+Application::GetInstance()
+{
+  static Application app;
+  return app;
+}
 
 
-#endif // __PF_PLUGIN_LAYER1_HH__
+//------------------------------------------------------------------------------
+// Initialize the plugin stack
+//------------------------------------------------------------------------------
+void
+Application::InitPluginStack()
+{
+  PluginManager& pm = PluginManager::GetInstance();
+  auto obj_map = pm.GetRegistrationMap();
+  LayerInterface* layer_imp = static_cast<LayerInterface*>(0);
+    
+  for (auto plugin = obj_map.begin(); plugin != obj_map.end(); ++plugin)
+  {
+    PF_Plugin_Layer layer = plugin->second.layer;
+    
+    if (mLayerImp.count(layer))
+    {
+      std::cerr << "Error: double plugin layer implementation" << std::endl;
+      continue;
+    }
+    
+    layer_imp = static_cast<LayerInterface*>(pm.CreateObject(plugin->first));
+    mLayerImp[layer] = layer_imp;
+  }
+}
+
+

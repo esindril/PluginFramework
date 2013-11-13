@@ -41,7 +41,11 @@ ADD_LIBRARY(PluginLayer1 SHARED
             LayerInterface.hh
             PluginLayer1.cc  PluginLayer1.hh)
 
-ADD_EXECUTABLE(loadPlugin main.cc)
+ADD_EXECUTABLE(loadPlugin 
+               main.cc
+               Plugin.hh
+               LayerInterface.hh
+               Application.cc Application.hh)
            
 TARGET_LINK_LIBRARIES(loadPlugin PluginManager dl)
 

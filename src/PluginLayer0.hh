@@ -39,9 +39,9 @@ class PluginLayer0 : public LayerInterface
  public:
 
   //----------------------------------------------------------------------------
-  //! Static plugin interface - create object 
+  //! Static plugin interface - create plugin object 
   //----------------------------------------------------------------------------
-  static void* Create(PF_ObjectParams* params);
+  static void* Create(PF_PlatformServices* services);
 
 
   //----------------------------------------------------------------------------
@@ -60,6 +60,7 @@ class PluginLayer0 : public LayerInterface
   //! Impelement LayerInterface method
   //----------------------------------------------------------------------------
   virtual int32_t MethodCall();
+
 
  private:
 
@@ -82,8 +83,8 @@ extern "C" int32_t ExitFunc();
 
 
 //------------------------------------------------------------------------------
-//! Plugin initialization entry point called by the PluginManager
+//! Plugin registration entry point called by the PluginManager
 //------------------------------------------------------------------------------
-extern "C" PF_ExitFunc PF_initPlugin(const PF_PlatformServices* params);
+extern "C" PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services);
 
 #endif // __PF_PLUGIN_LAYER0_HH__

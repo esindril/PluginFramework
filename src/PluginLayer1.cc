@@ -38,16 +38,16 @@ int32_t ExitFunc()
 
 
 //------------------------------------------------------------------------------
-// Plugin initialization entry point called by the PluginManager
+// Plugin registration entry point called by the PluginManager
 //------------------------------------------------------------------------------
 PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
 {
-  std::cout << "Initializing PluginLayer1 ..." << std::endl;
+  std::cout << "Register PluginLayer1 ..." << std::endl;
   PF_RegisterParams rp;
   rp.version.major = 0;
   rp.version.minor = 1;
-  rp.layer = PF_Plugin_Layer::Layer::L1;
-
+  rp.layer = PF_Plugin_Layer::L1;
+ 
   // Register the PluginLayer1 object provided by the current plugin
   rp.CreateFunc = PluginLayer1::Create;
   rp.DestroyFunc = PluginLayer1::Destroy;
@@ -66,11 +66,22 @@ PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
 //------------------------------------------------------------------------------
 // Static plugin interface - create object 
 //------------------------------------------------------------------------------
-void* PluginLayer1::Create(PF_ObjectParams* param)
+void* PluginLayer1::Create(PF_PlatformServices* services)
 {
-  // TODO: call the descovery service for the lower layer
+  // Call the descovery service for the lower layer object
+  LayerInterface* lowerLayer = static_cast<LayerInterface*>(0);
+  PF_Discovery_Service discover = { "PluginLayer1", 0};
+  int retc = services->invokeService( "discovery", (void*) &discover);
 
-  LayerInterface* lowerLayer = 0;
+  if (retc)
+  {
+    std::cerr << "Error while invoking discovery service" << std::endl;
+    return NULL;
+  }
+  
+  if (discover.lowerLayer)
+    lowerLayer = static_cast<LayerInterface*>(discover.lowerLayer);
+  
   return new PluginLayer1(lowerLayer);
 }
 
@@ -116,6 +127,6 @@ int32_t
 PluginLayer1::MethodCall()
 {
   std::cout << __PRETTY_FUNCTION__ << " calling method" << std::endl;
-  return 0;
+  return (mLowerLayer ? mLowerLayer->MethodCall() : 0);
 }
 

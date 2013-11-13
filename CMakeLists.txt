@@ -32,7 +32,7 @@ set(VERSION_PATCH "0")
 # Main section
 ################################################################################
 cmake_minimum_required (VERSION 2.6)
-project (eosplugin)
+project (pluginframework)
 
 if (RELEASE)
 else (RELEASE)
@@ -82,6 +82,6 @@ set(CPACK_SOURCE_IGNORE_FILES "/dsi/;/build/;/.deps/;/.bzr/;~$;'.'o$;/CMakeFiles
 include(CPack)
 include(cmake/UseRPMTools.cmake)	
 IF(RPMTools_FOUND)
-  RPMTools_ADD_RPM_TARGETS(eosplugin ${CMAKE_SOURCE_DIR}/eosplugin.spec.in)
+  RPMTools_ADD_RPM_TARGETS(pluginframework ${CMAKE_SOURCE_DIR}/pluginframework.spec.in)
 ENDIF(RPMTools_FOUND)
 
