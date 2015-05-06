@@ -68,11 +68,11 @@ public:
   //! Load all dynamic libraries in the specified directory
   //!
   //! @param pluginDirectory path to directory
-  //! @param fun
+  //! @param fun callable to get various services provied by the PM
   //!
   //! @return 0 if successful, otherwise !0
   //----------------------------------------------------------------------------
-  int32_t LoadAll(const std::string& pluginDirectory,
+  int32_t LoadAll(std::string pluginDirectory,
 		  PF_InvokeServiceFunc func = NULL);
 
   //----------------------------------------------------------------------------

@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
   Application& app = Application::GetInstance();
   app.InitPluginStack();
 
-  for (auto&& impl: app.mLayerImp)
+  for (auto impl = app.mLayerImp.begin(); impl != app.mLayerImp.end(); ++impl)
   {
-    std::cout << "Calling from Layer: " << impl.first << std::endl;
-    impl.second->MethodCall();
+    std::cout << "Calling from Layer: " << impl->first << std::endl;
+    impl->second->MethodCall();
   }
 }

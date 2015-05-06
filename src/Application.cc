@@ -65,9 +65,9 @@ Application::InitPluginStack()
   auto obj_map = pm.GetRegistrationMap();
   LayerInterface* layer_imp = static_cast<LayerInterface*>(0);
     
-  for (auto&& plugin: obj_map)
+  for (auto plugin = obj_map.begin(); plugin != obj_map.end(); ++plugin)
   {
-    PF_Plugin_Layer layer = plugin.second.layer;
+    PF_Plugin_Layer layer = plugin->second.layer;
     
     if (mLayerImp.count(layer))
     {
@@ -75,7 +75,7 @@ Application::InitPluginStack()
       continue;
     }
     
-    layer_imp = static_cast<LayerInterface*>(pm.CreateObject(plugin.first));
+    layer_imp = static_cast<LayerInterface*>(pm.CreateObject(plugin->first));
     mLayerImp[layer] = layer_imp;
   }
 }

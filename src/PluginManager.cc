@@ -74,7 +74,7 @@ int32_t PluginManager::Shutdown()
 {
   int32_t result = 0;
 
-  for (auto func: mExitFuncVec)
+  for (auto func = mExitFuncVec.begin(); func != mExitFuncVec.end(); ++func)
   {
     try
     {
@@ -164,11 +164,9 @@ PluginManager::RegisterObject(const char* objType,
 // Load all dynamic libraries from directory
 //------------------------------------------------------------------------------
 int32_t
-PluginManager::LoadAll(const std::string& pluginDir,
+PluginManager::LoadAll(std::string dir_path,
 		       PF_InvokeServiceFunc func)
 {
-  std::string dir_path {pluginDir};
-
   if (dir_path.empty())
   {
     std::cerr << "Plugin path is empty" << std::endl;
@@ -216,17 +214,16 @@ PluginManager::LoadAll(const std::string& pluginDir,
       continue;
 
     full_path= dir_path + entity->d_name;
-    size_t pos;
 
     // Try all accepted extensions
-    for (auto const extension: sDynLibExtensions)
+    for (auto extension = sDynLibExtensions.begin();
+         extension != sDynLibExtensions.end();
+         ++extension)
     {
-      if (full_path.length() <= extension.length())
+      if (full_path.length() <= extension->length())
 	continue;
 
-      pos = full_path.length() - extension.length();
-
-      if (full_path.substr(pos) == extension)
+      if (full_path.find(*extension) != std::string::npos)
       {
 	LoadByPath(full_path);
 	break;
@@ -289,7 +286,7 @@ PluginManager::CreateObject(const std::string& objType)
       return object;
   }
 
-  return nullptr;
+  return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -301,7 +298,7 @@ PluginManager::LoadLibrary(const std::string& path, std::string& error)
   DynamicLibrary* dyn_lib = DynamicLibrary::Load(path, error);
 
   if (!dyn_lib)
-    return nullptr;
+    return NULL;
 
   // Add library to map, so it can be unloaded
   mDynamicLibMap[path] = std::shared_ptr<DynamicLibrary>(dyn_lib);
