@@ -26,13 +26,16 @@
 #include <iostream>
 #include <sys/types.h>
 #include <dirent.h>
+#include <unistd.h>
 /*----------------------------------------------------------------------------*/
 #include "PluginManager.hh"
 #include "LayerInterface.hh"
 #include "DynamicLibrary.hh"
 /*----------------------------------------------------------------------------*/
 
-static std::string dynLibExtension("so");
+PF_NAMESPACE_BEGIN
+
+static std::vector<std::string> sDynLibExtensions {".so", ".dylib"};
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -41,10 +44,9 @@ PluginManager::PluginManager()
 {
   mPlatformServices.version.major = 0;
   mPlatformServices.version.minor = 1;
-  mPlatformServices.invokeService = NULL; // can be populated during loadAll()
+  mPlatformServices.invokeService = NULL; // can be populated during LoadAll()
   mPlatformServices.registerObject = RegisterObject;
 }
-
 
 //------------------------------------------------------------------------------
 // Destructor
@@ -54,7 +56,6 @@ PluginManager::~PluginManager()
   // Just in case it wasn't called earlier
   Shutdown();
 }
-
 
 //------------------------------------------------------------------------------
 // Get instance of PluginManager
@@ -66,7 +67,6 @@ PluginManager::GetInstance()
   return instance;
 }
 
-
 //------------------------------------------------------------------------------
 // Shutdown method
 //------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ int32_t PluginManager::Shutdown()
 {
   int32_t result = 0;
 
-  for (auto func = mExitFuncVec.begin(); func != mExitFuncVec.end(); ++func)
+  for (auto func: mExitFuncVec)
   {
     try
     {
@@ -92,24 +92,22 @@ int32_t PluginManager::Shutdown()
   return result;
 }
 
-
 //------------------------------------------------------------------------------
 // The registration params may be received from an external plugin so it is
-// crucial to validate it, because it was never subjected to our tests.
+// crucial to validate it, because it was never subject to our tests
 //------------------------------------------------------------------------------
 static bool IsValid(const char* objType,
-                    const PF_RegisterParams* params)
+		    const PF_RegisterParams* params)
 {
   if (!objType)
     return false;
-  
+
   // Plugin does not implement the interface
   if (!params || !params->CreateFunc || !params->DestroyFunc)
     return false;
 
   return true;
 }
-
 
 //------------------------------------------------------------------------------
 // Initialize plugin
@@ -128,13 +126,12 @@ PluginManager::InitializePlugin(PF_InitFunc initFunc)
   return 0;
 }
 
-
 //------------------------------------------------------------------------------
 // Plugin registers the objects that it provides through this function
 //------------------------------------------------------------------------------
 int32_t
 PluginManager::RegisterObject(const char* objType,
-                              const PF_RegisterParams* params)
+			      const PF_RegisterParams* params)
 {
   // Check parameters
   if (!IsValid(objType, params))
@@ -142,7 +139,7 @@ PluginManager::RegisterObject(const char* objType,
 
   std::string key = std::string(objType);
   PluginManager& pm = PluginManager::GetInstance();
-  
+
   // Verify that versions match
   PF_PluginAPI_Version v = pm.mPlatformServices.version;
 
@@ -151,7 +148,7 @@ PluginManager::RegisterObject(const char* objType,
     std::cerr << "Plugin manager API and plugin API version missmatch" << std::endl;
     return -1;
   }
-  
+
   // Fail if item already exists (only one can handle)
   if (pm.mObjectMap.find(key) != pm.mObjectMap.end())
   {
@@ -163,16 +160,15 @@ PluginManager::RegisterObject(const char* objType,
   return 0;
 }
 
-
 //------------------------------------------------------------------------------
 // Load all dynamic libraries from directory
 //------------------------------------------------------------------------------
 int32_t
 PluginManager::LoadAll(const std::string& pluginDir,
-                       PF_InvokeServiceFunc func)
+		       PF_InvokeServiceFunc func)
 {
-  std::string dir_path(pluginDir);
-  
+  std::string dir_path {pluginDir};
+
   if (dir_path.empty())
   {
     std::cerr << "Plugin path is empty" << std::endl;
@@ -182,20 +178,20 @@ PluginManager::LoadAll(const std::string& pluginDir,
   // If relative path, get current working directory
   if (dir_path[0] == '.')
   {
-    char* cwd = 0;
-    size_t size = 0;
+    char* cwd {0};
+    size_t size {0};
     cwd = getcwd(cwd, size);
-    
+
     if (cwd)
     {
       std::string tmp_path = cwd;
       dir_path = dir_path.erase(0, 1);
-      dir_path = tmp_path + dir_path;       
+      dir_path = tmp_path + dir_path;
       free(cwd);
     }
   }
 
-  // Add backslash at the end 
+  // Add backslash at the end
   if (dir_path[dir_path.length() - 1] != '/')
     dir_path += '/';
 
@@ -211,29 +207,35 @@ PluginManager::LoadAll(const std::string& pluginDir,
   }
 
   std::string full_path;
-  struct dirent* entity = 0; 
-  
+  struct dirent* entity {0};
+
   while ((entity = readdir(dir)))
   {
-    // Skip directories and files with wrong extension
-    if (entity->d_type & DT_DIR)
+    // Skip directories and link files
+    if ((entity->d_type & DT_DIR) || (entity->d_type == DT_LNK))
       continue;
-    
-    full_path= dir_path + entity->d_name;
 
-    if (full_path.find_last_of(dynLibExtension) !=
-        full_path.length() - dynLibExtension.length() + 1)
+    full_path= dir_path + entity->d_name;
+    size_t pos;
+
+    // Try all accepted extensions
+    for (auto const extension: sDynLibExtensions)
     {
-      continue;
+      if (full_path.length() <= extension.length())
+	continue;
+
+      pos = full_path.length() - extension.length();
+
+      if (full_path.substr(pos) == extension)
+      {
+	LoadByPath(full_path);
+	break;
+      }
     }
-    
-    // Load library 
-    LoadByPath(full_path);
   }
 
   return 0;
 }
-
 
 //------------------------------------------------------------------------------
 // Get plugin object from dynamic library
@@ -253,22 +255,21 @@ PluginManager::LoadByPath(const std::string& pluginPath)
     std::cerr << error << std::endl;
     return -1;
   }
-  
+
   // Get the *_initPlugin() function
   PF_InitFunc initFunc = (PF_InitFunc)(dyn_lib->GetSymbol("PF_initPlugin"));
 
   // Expected entry point missing from dynamic library
   if (!initFunc)
     return -1;
-  
+
   int32_t res = InitializePlugin(initFunc);
-  
+
   if (res < 0)
     return res;
 
   return 0;
 }
-
 
 //------------------------------------------------------------------------------
 // Create plugin object for the specified layer
@@ -277,22 +278,19 @@ void*
 PluginManager::CreateObject(const std::string& objType)
 {
   auto iter = mObjectMap.find(objType);
-  
+
   if (iter != mObjectMap.end())
   {
     PF_RegisterParams& rp = iter->second;
     void* object = rp.CreateFunc(&mPlatformServices);
-    
-    if (object)
-    {
-      // Register the new plugin object 
-      return object;
-    }
-  }
- 
-  return NULL;
-}
 
+    // Register the new plugin object
+    if (object)
+      return object;
+  }
+
+  return nullptr;
+}
 
 //------------------------------------------------------------------------------
 // Load dynamic library
@@ -303,13 +301,12 @@ PluginManager::LoadLibrary(const std::string& path, std::string& error)
   DynamicLibrary* dyn_lib = DynamicLibrary::Load(path, error);
 
   if (!dyn_lib)
-    return NULL;
+    return nullptr;
 
   // Add library to map, so it can be unloaded
   mDynamicLibMap[path] = std::shared_ptr<DynamicLibrary>(dyn_lib);
   return dyn_lib;
 }
-
 
 //------------------------------------------------------------------------------
 // Get registration map
@@ -320,7 +317,6 @@ PluginManager::GetRegistrationMap() const
   return mObjectMap;
 }
 
-
 //------------------------------------------------------------------------------
 // Get available platform services
 //------------------------------------------------------------------------------
@@ -329,3 +325,5 @@ PluginManager::GetPlatformServices()
 {
   return mPlatformServices;
 }
+
+PF_NAMESPACE_END

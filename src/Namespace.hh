@@ -1,12 +1,11 @@
 //------------------------------------------------------------------------------
-//! @file LayerInterface.hh
-//! @author Elvin-Alin Sindrilaru <esindril@cern.ch>
-//! @brief Interface which must be implemented by all plugins
+// File Namespace.hh
+// Author Elvin-Alin Sindrilaru <esindril@cern.ch>
 //------------------------------------------------------------------------------
 
 /************************************************************************
  * EOS - the CERN Disk Storage System                                   *
- * Copyright (C) 2013 CERN/Switzerland                                  *
+ * Copyright (C) 2015 CERN/Switzerland                                  *
  *                                                                      *
  * This program is free software: you can redistribute it and/or modify *
  * it under the terms of the GNU General Public License as published by *
@@ -22,28 +21,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  ************************************************************************/
 
-#ifndef __PF_LAYER_INTERFACE_HH__
-#define __PF_LAYER_INTERFACE_HH__
+#ifndef __PF_NAMESPACE_HH__
+#define __PF_NAMESPACE_HH__
 
-/*----------------------------------------------------------------------------*/
-#include <cstdint>
-/*----------------------------------------------------------------------------*/
+#define USE_PFNAMESPACE using namespace pf;
+#define PF_NAMESPACE_BEGIN namespace pf { 
+#define PF_NAMESPACE_END }
 
-//------------------------------------------------------------------------------
-//! Class LayerInterface
-//------------------------------------------------------------------------------
-class LayerInterface
-{
- public: 
-  //----------------------------------------------------------------------------
-  //! Destructor
-  //----------------------------------------------------------------------------
-  virtual ~LayerInterface() { };
-
-  //----------------------------------------------------------------------------
-  //! Domain specific method
-  //----------------------------------------------------------------------------
-  virtual int32_t MethodCall() = 0;
-};
-
-#endif // __PF_LAYER_INTERFACE_HH__
+#endif // __PF_NAMESPACE_HH__

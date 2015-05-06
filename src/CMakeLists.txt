@@ -21,31 +21,57 @@
 # * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
 # ************************************************************************
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}
-	            ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(
+  ${PROJECT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR})
 
-LINK_DIRECTORIES()
+add_library(
+  PluginManager SHARED
+  Plugin.hh
+  PluginManager.cc   PluginManager.hh
+  DynamicLibrary.cc  DynamicLibrary.hh)
 
-ADD_LIBRARY(PluginManager SHARED
-            Plugin.hh
-            PluginManager.cc   PluginManager.hh
-	    DynamicLibrary.cc  DynamicLibrary.hh)
+set_target_properties(
+  PluginManager
+  PROPERTIES
+  VERSION ${VERSION}
+  SOVERSION ${VERSION_MAJOR}
+  INTERFACE_LINK_LIBRARIES ""
+  MACOSX_RPATH TRUE)
 
-ADD_LIBRARY(PluginLayer0 SHARED
-	    Plugin.hh
-            LayerInterface.hh
-            PluginLayer0.cc  PluginLayer0.hh)
+add_library(
+  PluginLayer0 SHARED
+  Plugin.hh
+  LayerInterface.hh
+  PluginLayer0.cc  PluginLayer0.hh)
 
-ADD_LIBRARY(PluginLayer1 SHARED
-	    Plugin.hh
-            LayerInterface.hh
-            PluginLayer1.cc  PluginLayer1.hh)
+set_target_properties(
+  PluginLayer0
+  PROPERTIES
+  VERSION ${VERSION}
+  SOVERSION ${VERSION_MAJOR}
+  INTERFACE_LINK_LIBRARIES ""
+  MACOSX_RPATH TRUE)
 
-ADD_EXECUTABLE(loadPlugin 
-               main.cc
-               Plugin.hh
-               LayerInterface.hh
-               Application.cc Application.hh)
-           
-TARGET_LINK_LIBRARIES(loadPlugin PluginManager dl)
+add_library(
+  PluginLayer1 SHARED
+  Plugin.hh
+  LayerInterface.hh
+  PluginLayer1.cc  PluginLayer1.hh)
 
+set_target_properties(
+  PluginLayer1
+  PROPERTIES
+  VERSION ${VERSION}
+  SOVERSION ${VERSION_MAJOR}
+  INTERFACE_LINK_LIBRARIES ""
+  MACOSX_RPATH TRUE)
+
+add_executable(
+  loadPlugin
+  main.cc
+  Plugin.hh
+  LayerInterface.hh
+  Application.cc Application.hh)
+
+target_link_libraries(loadPlugin PluginManager dl)

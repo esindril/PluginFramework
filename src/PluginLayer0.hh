@@ -30,57 +30,47 @@
 #include "LayerInterface.hh"
 /*----------------------------------------------------------------------------*/
 
-
 //------------------------------------------------------------------------------
 //! Class PluginLayer0
 //------------------------------------------------------------------------------
 class PluginLayer0 : public LayerInterface
 {
  public:
-
   //----------------------------------------------------------------------------
   //! Static plugin interface - create plugin object 
   //----------------------------------------------------------------------------
   static void* Create(PF_PlatformServices* services);
 
-
   //----------------------------------------------------------------------------
   //! Static plugin interface - destroy object
   //----------------------------------------------------------------------------
   static int32_t Destroy(void *);
-
   
   //----------------------------------------------------------------------------
   //! Destructor
   //----------------------------------------------------------------------------
   virtual ~PluginLayer0();
 
-
   //----------------------------------------------------------------------------
   //! Impelement LayerInterface method
   //----------------------------------------------------------------------------
   virtual int32_t MethodCall();
 
-
  private:
-
   LayerInterface* mLowerLayer; ///< pointer to lower layer interface
 
   //----------------------------------------------------------------------------
   //! Constructor
   //!
   //! @param lowerLayer lower layer interface provided by the PluginManager
-  //!
   //----------------------------------------------------------------------------
   PluginLayer0(LayerInterface* lowerLayer);
 };
-
 
 //------------------------------------------------------------------------------
 //! Plugin exit function called by the PluginManager when doing cleanup
 //------------------------------------------------------------------------------
 extern "C" int32_t ExitFunc();
-
 
 //------------------------------------------------------------------------------
 //! Plugin registration entry point called by the PluginManager

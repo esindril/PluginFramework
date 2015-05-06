@@ -27,7 +27,6 @@
 #include <iostream>
 /*----------------------------------------------------------------------------*/
 
-
 //------------------------------------------------------------------------------
 // Plugin exit function called by the PluginManager when doing cleanup
 //------------------------------------------------------------------------------
@@ -35,7 +34,6 @@ int32_t ExitFunc()
 {
   return 0;  
 }
-
 
 //------------------------------------------------------------------------------
 // Plugin registration entry point called by the PluginManager
@@ -62,13 +60,12 @@ PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
   return ExitFunc;
 }
 
-
 //------------------------------------------------------------------------------
 // Static plugin interface - create object 
 //------------------------------------------------------------------------------
 void* PluginLayer0::Create(PF_PlatformServices* services)
 {
-  // Call the descovery service for the lower layer object
+  // Call the discovery service for the lower layer object
   PF_Discovery_Service discover = { "PluginLayer0", 0};
   int retc = services->invokeService( "discovery", (void*) &discover);
 
@@ -78,10 +75,9 @@ void* PluginLayer0::Create(PF_PlatformServices* services)
     return NULL;
   }
   
-  LayerInterface* lowerLayer = static_cast<LayerInterface*>(discover.lowerLayer);
+  LayerInterface* lowerLayer = static_cast<LayerInterface*>(discover.ptrService);
   return new PluginLayer0(lowerLayer);
 }
-
 
 //------------------------------------------------------------------------------
 // Static plugin interface - destroy object
@@ -96,7 +92,6 @@ PluginLayer0::Destroy(void* obj)
   return 0;
 }
 
-
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
@@ -107,7 +102,6 @@ PluginLayer0::PluginLayer0(LayerInterface* lowerLayer):
   // empty
 }
 
-
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
@@ -115,7 +109,6 @@ PluginLayer0::~PluginLayer0()
 {
   // empty
 }
-
 
 //------------------------------------------------------------------------------
 // MethodCall implementation
@@ -126,4 +119,3 @@ PluginLayer0::MethodCall()
   std::cout << __PRETTY_FUNCTION__ << " calling method" << std::endl;
   return (mLowerLayer ? mLowerLayer->MethodCall() : 0);
 }
-

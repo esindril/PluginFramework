@@ -30,11 +30,13 @@
 #include <memory>
 /*----------------------------------------------------------------------------*/
 #include "Plugin.hh"
+#include "Namespace.hh"
 /*----------------------------------------------------------------------------*/
+
+PF_NAMESPACE_BEGIN
 
 //! Forward declaration
 class DynamicLibrary;
-
 
 //----------------------------------------------------------------------------
 //! Class Plugin Manager
@@ -43,29 +45,25 @@ class PluginManager
 {
   typedef std::map<std::string, std::shared_ptr<DynamicLibrary> > DynamicLibMap;
   typedef std::vector<PF_ExitFunc> ExitFuncVec;
-  typedef std::vector<PF_RegisterParams> RegistrationVec;
-  
+
 public:
 
   typedef std::map<std::string, PF_RegisterParams> RegistrationMap;
-  
+
   //----------------------------------------------------------------------------
   //! Get instance of PluginManager
   //----------------------------------------------------------------------------
   static PluginManager& GetInstance();
-  
-  
+
   //----------------------------------------------------------------------------
   //! Initialize plugin object
   //!
   //! @param initFunc plugin init function
   //!
   //! @return 0 if successful, otherwise !0
-  //!
   //----------------------------------------------------------------------------
   static int32_t InitializePlugin(PF_InitFunc initFunc);
-  
-  
+
   //----------------------------------------------------------------------------
   //! Load all dynamic libraries in the specified directory
   //!
@@ -75,39 +73,33 @@ public:
   //! @return 0 if successful, otherwise !0
   //----------------------------------------------------------------------------
   int32_t LoadAll(const std::string& pluginDirectory,
-                  PF_InvokeServiceFunc func = NULL);
-  
-  
+		  PF_InvokeServiceFunc func = NULL);
+
   //----------------------------------------------------------------------------
   //! Load dynamic library given its path
   //!
   //! @param path path to dynamic library
   //!
   //! @return 0 if successful, othewise !0
-  //!
   //----------------------------------------------------------------------------
   int32_t LoadByPath(const std::string& path);
-  
-  
+
   //----------------------------------------------------------------------------
   //! Create a plugin object
   //!
   //! @param objType object type name
   //!
   //! @return pointer to newly create object if successful, otherwise NULL
-  //!
   //----------------------------------------------------------------------------
   void* CreateObject(const std::string& objType);
-  
-  
+
   //----------------------------------------------------------------------------
   //! Cleanup function called before PluginManager is destroyed
   //!
   //! @return 0 if successful, otherwise !0
   //----------------------------------------------------------------------------
   int32_t Shutdown();
-  
-  
+
   //----------------------------------------------------------------------------
   //! Method called by the plugin to register the objects it provides
   //!
@@ -115,11 +107,9 @@ public:
   //! @param params paramters registered by the plugin
   //!
   //! @return 0 if successful, otherwise !0
-  //!
   //----------------------------------------------------------------------------
   static int32_t RegisterObject(const char* objType,
-                                const PF_RegisterParams* params);
-  
+				const PF_RegisterParams* params);
 
   //----------------------------------------------------------------------------
   //! Initialize the plugin stack. The PluginManager takes care of initializing
@@ -128,43 +118,36 @@ public:
   //! plugin object are connected
   //!
   //! @return 0 if successful, otherwise !0
-  //! 
   //----------------------------------------------------------------------------
   int32_t InitPluginStack();
 
-  
   //----------------------------------------------------------------------------
   //! Get registration map i.e. plugin object types available
   //----------------------------------------------------------------------------
-  const RegistrationMap& GetRegistrationMap() const ;
-  
-  
+  const RegistrationMap& GetRegistrationMap() const;
+
   //----------------------------------------------------------------------------
   //! Get services provided by the platform i.e. logging
   //----------------------------------------------------------------------------
-  PF_PlatformServices& GetPlatformServices() ;
+  PF_PlatformServices& GetPlatformServices();
 
-  
 private:
-  
+
   //----------------------------------------------------------------------------
   //! Constructor
   //----------------------------------------------------------------------------
   PluginManager();
-  
-  
+
   //----------------------------------------------------------------------------
   //! Copy constructor
   //----------------------------------------------------------------------------
-  PluginManager(const PluginManager&);
-  
-  
+  PluginManager(const PluginManager&) = delete;
+
   //----------------------------------------------------------------------------
   //! Destructor
   //----------------------------------------------------------------------------
   ~PluginManager();
-  
-  
+
   //----------------------------------------------------------------------------
   //! Load dynamic library
   //!
@@ -172,15 +155,17 @@ private:
   //! @param errorString error in string format
   //!
   //! @return dynamic libary object
-  //!
   //----------------------------------------------------------------------------
   DynamicLibrary* LoadLibrary(const std::string& path, std::string& errorString);
-  
+
 private:
   PF_PlatformServices mPlatformServices;
-  DynamicLibMap mDynamicLibMap;
-  ExitFuncVec mExitFuncVec;
-  RegistrationMap mObjectMap; // registered object types by plugins
+  DynamicLibMap mDynamicLibMap; ///< library path to DynamicLibrary obj. map
+  ExitFuncVec mExitFuncVec;  ///< vector of ExitFunc object for each plugin
+  RegistrationMap mObjectMap; ///< registered object types by plugins
 };
 
+PF_NAMESPACE_END
+
 #endif  // __PF_PLUGIN_MANAGER_HH__
+

@@ -27,6 +27,7 @@
 set(VERSION_MAJOR "0" )
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
+set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 ################################################################################
 # Main section
@@ -50,7 +51,7 @@ if (PREFIX)
   set (CMAKE_INSTALL_PREFIX ${PREFIX})
 endif (PREFIX)
 
-set(CMAKE_CXX_FLAGS "-g -Wall -O2 -msse4.2 -std=gnu++0x -DVERSION=\\\"${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}\\\" ")
+set(CMAKE_CXX_FLAGS "-g -Wall -O2 -msse4.2 -std=gnu++0x -DVERSION=\\\"${VERSION}\\\" ")
 
 if(MacOSX)
   set(LIB_INSTALL_DIR lib)
@@ -72,11 +73,9 @@ add_subdirectory(tests)
 ################################################################################
 add_custom_target( dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source )
 
-set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
+set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_SOURCE_GENERATOR "RPM")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${RELEASE}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${RELEASE}")
 set(CPACK_SOURCE_IGNORE_FILES "/dsi/;/build/;/.deps/;/.bzr/;~$;'.'o$;/CMakeFiles/;Makefile;/_CPack_Packages/;.tar.gz$;.tar.bz2;CMakeCache.txt;build;install_manifest.txt;lib;/.git/;${CPACK_SOURCE_IGNORE_FILES};")
 
 include(CPack)

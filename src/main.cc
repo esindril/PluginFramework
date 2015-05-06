@@ -29,9 +29,8 @@
 #include "Application.hh"
 /*----------------------------------------------------------------------------*/
 
-
 //------------------------------------------------------------------------------
-// Invoke application services outside of the plugin object 
+// Invoke application services outside of the plugin object
 //------------------------------------------------------------------------------
 int32_t
 InvokeService(const char* serviceName, void* serviceParam)
@@ -40,32 +39,31 @@ InvokeService(const char* serviceName, void* serviceParam)
   {
     // Check if the object requesting a service is already registered
     auto discover = static_cast<PF_Discovery_Service*>(serviceParam);
-    PluginManager& pm = PluginManager::GetInstance();
+    pf::PluginManager& pm = pf::PluginManager::GetInstance();
     auto reg_map = pm.GetRegistrationMap();
     auto reg_obj = reg_map.find(std::string(discover->objType));
 
     if (reg_obj != reg_map.end())
-    {      
+    {
       // Try to get previous layer implementation if this is not the bottom one
       if (reg_obj->second.layer - 1 >= 0)
       {
-        PF_Plugin_Layer search_layer = (PF_Plugin_Layer)(reg_obj->second.layer - 1);
-        Application& app = Application::GetInstance();
-        auto layer_imp = app.mLayerImp.find(search_layer);
-        
-        if (layer_imp != app.mLayerImp.end())
-        {
-          std::cout << "Found the lower layer implementation ..." << std::endl;
-          discover->lowerLayer = static_cast<void*>(layer_imp->second);
-          return 0;
-        }     
+	PF_Plugin_Layer search_layer = (PF_Plugin_Layer)(reg_obj->second.layer - 1);
+	Application& app = Application::GetInstance();
+	auto layer_imp = app.mLayerImp.find(search_layer);
+
+	if (layer_imp != app.mLayerImp.end())
+	{
+	  std::cout << "Found the lower layer implementation ..." << std::endl;
+	  discover->ptrService = static_cast<void*>(layer_imp->second);
+	  return 0;
+	}
       }
     }
   }
-    
+
   return 0;
 }
-
 
 //------------------------------------------------------------------------------
 // Main function
@@ -78,13 +76,16 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  PluginManager& pm = PluginManager::GetInstance();
+  pf::PluginManager& pm = pf::PluginManager::GetInstance();
   pm.GetPlatformServices().invokeService = InvokeService;
   pm.LoadAll(argv[1]);
 
   Application& app = Application::GetInstance();
   app.InitPluginStack();
 
-  for (auto impl = app.mLayerImp.begin(); impl != app.mLayerImp.end(); ++impl)
-    impl->second->MethodCall();
+  for (auto&& impl: app.mLayerImp)
+  {
+    std::cout << "Calling from Layer: " << impl.first << std::endl;
+    impl.second->MethodCall();
+  }
 }

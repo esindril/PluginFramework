@@ -29,6 +29,7 @@
 #include "DynamicLibrary.hh"
 /*----------------------------------------------------------------------------*/
 
+PF_NAMESPACE_BEGIN
 
 //------------------------------------------------------------------------------
 // Constructor with parameter
@@ -47,7 +48,6 @@ DynamicLibrary::~DynamicLibrary()
   if (mHandle)
     ::dlclose(mHandle);
 }
-
 
 //------------------------------------------------------------------------------
 // Load dynamic library
@@ -82,7 +82,6 @@ DynamicLibrary::Load(const std::string& name,
   return new DynamicLibrary(handle);
 }
 
-
 //------------------------------------------------------------------------------
 // Get symbol
 //------------------------------------------------------------------------------
@@ -108,4 +107,4 @@ DynamicLibrary::GetSymbol(const std::string& symbol)
   return dlsym_obj;
 }
 
-
+PF_NAMESPACE_END

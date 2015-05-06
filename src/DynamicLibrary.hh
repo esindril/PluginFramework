@@ -27,6 +27,10 @@
 /*----------------------------------------------------------------------------*/
 #include <string>
 /*----------------------------------------------------------------------------*/
+#include "Namespace.hh"
+/*----------------------------------------------------------------------------*/
+
+PF_NAMESPACE_BEGIN
 
 //------------------------------------------------------------------------------
 //! Class DyanmicLibrary
@@ -42,17 +46,14 @@ class DynamicLibrary
   //! @param error error message
   //!
   //! @return handle to DynamicLibrary object
-  //!
   //----------------------------------------------------------------------------
   static DynamicLibrary* Load(const std::string& path,
                               std::string& error);
-  
   
   //----------------------------------------------------------------------------
   //! Destructor
   //----------------------------------------------------------------------------
   ~DynamicLibrary();
-  
   
   //----------------------------------------------------------------------------
   //! Get hadle to symbol from current dynamic library
@@ -60,7 +61,6 @@ class DynamicLibrary
   //! @param name symbol name
   //!
   //! @return handle to requestes object if successful, otherwise NULL
-  //!
   //----------------------------------------------------------------------------
   void* GetSymbol(const std::string& name);
   
@@ -73,18 +73,17 @@ class DynamicLibrary
   //----------------------------------------------------------------------------
   DynamicLibrary();
   
-  
   //----------------------------------------------------------------------------
   //! Constructor with parameter
   //----------------------------------------------------------------------------
   DynamicLibrary(void* handle);
   
-
   //----------------------------------------------------------------------------
   //! Copy constructor
   //----------------------------------------------------------------------------
-  DynamicLibrary(const DynamicLibrary&);
-  
+  DynamicLibrary(const DynamicLibrary&) = delete;
 };
+
+PF_NAMESPACE_END
 
 #endif // __PF_DYNAMIC_LIBRARY_HH__

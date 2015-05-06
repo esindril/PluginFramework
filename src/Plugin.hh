@@ -47,7 +47,6 @@ typedef enum PF_Plugin_Layer
   L3  // top one
 } PF_Plugin_Layer;
   
-  
 //------------------------------------------------------------------------------
 //! Plugin version information
 //------------------------------------------------------------------------------
@@ -57,27 +56,23 @@ typedef struct PF_PluginAPI_Version
   int32_t minor;
 } PF_PluginAPI_Version;
 
-
 //------------------------------------------------------------------------------
 //! Create and destroy methods to be implemented by the plugin objects. Through
 //! these the PluginManager manages the lifetime of plugin objects
 //------------------------------------------------------------------------------
 typedef void* (*PF_CreateFunc)(PF_PlatformServices*);
 typedef int32_t (*PF_DestroyFunc)(void*);
-
   
 //------------------------------------------------------------------------------
-//! Parameters registered by the plugin objects at the PluginManager
+//! Parameters registered by the plugin objects with the PluginManager
 //------------------------------------------------------------------------------
 typedef struct PF_RegisterParams
 {
   PF_PluginAPI_Version version;
   PF_CreateFunc CreateFunc;
   PF_DestroyFunc DestroyFunc;
-  PF_Plugin_Layer layer;
-  
+  PF_Plugin_Layer layer;  
 } PF_RegisterParams;
-
 
 //------------------------------------------------------------------------------
 //! Register function pointer used by a plugin object to register itself with 
@@ -86,7 +81,6 @@ typedef struct PF_RegisterParams
 typedef int32_t (*PF_RegisterFunc)(const char* objType,
                                    const PF_RegisterParams* params);
   
-
 //------------------------------------------------------------------------------
 //! Function pointer calling platform services specified by name. This can be 
 //! used by the plugin object to pass information to/from the main application
@@ -95,9 +89,11 @@ typedef int32_t (*PF_RegisterFunc)(const char* objType,
 typedef int32_t (*PF_InvokeServiceFunc)(const char* serviceName,
                                         void* serviceParams);
 
-
 //------------------------------------------------------------------------------
-//! Platform services structure
+//! Platform services structure provided by the PluginManager to any loaded
+//! plugin. It describes the PM's version, register function to be called by
+//! the plugin object and also other possible services which are made available
+//! by the PM to the plugin objects.
 //------------------------------------------------------------------------------
 typedef struct PF_PlatformServices
 {
@@ -106,17 +102,15 @@ typedef struct PF_PlatformServices
   PF_InvokeServiceFunc invokeService;
 } PF_PlatformServices;
 
-
 //------------------------------------------------------------------------------
 //! Discovery service parameters
 //------------------------------------------------------------------------------
 typedef struct PF_Discovery_Service
 {
   const char* objType;
-  void* lowerLayer;
+  void* ptrService;
 } PF_Discovery_Service;
   
-
 //------------------------------------------------------------------------------
 //! Exit function pointer returned after registering a new plugin. This is 
 //! called by the PluginManager when destroying loaded plugins.
@@ -124,16 +118,14 @@ typedef struct PF_Discovery_Service
 //------------------------------------------------------------------------------
 typedef int32_t (*PF_ExitFunc)();
 
-
 //------------------------------------------------------------------------------
-//! Function used the PluginManager to initialize registered plugin
-//! The plugin may use the runtime  services - allocate memory, log messages 
-//! and of course register plugin objects
+//! Function used by the PluginManager to initialize registered plugins.
+//! The plugin may use the runtime services - allocate memory, log messages 
+//! and of course register plugin objects.
 //!
 //! @param  params  platform services struct
 //! 
 //! @return the exit func of the plugin or NULL if initialization failed
-//! 
 //------------------------------------------------------------------------------
 typedef PF_ExitFunc (*PF_InitFunc)(const PF_PlatformServices*);
 
@@ -144,12 +136,11 @@ extern
 
 //------------------------------------------------------------------------------
 //! Each plugin implementation must contain this function with the same name
-//! and signature. The method is called each time a new plugin library is loaded
+//! and signature. The method is called each time a new plugin library is loaded.
 //!
 //! @param  params the platform services struct
 //!
 //! @return the exit func of the plugin or NULL if initialization failed
-//!
 //------------------------------------------------------------------------------
 PF_ExitFunc PF_initPlugin(const PF_PlatformServices* params);
 
@@ -157,5 +148,5 @@ PF_ExitFunc PF_initPlugin(const PF_PlatformServices* params);
 }
 #endif
 
-#endif /* __PF_PLUGIN_HH__ */
+#endif // __PF_PLUGIN_HH__
 

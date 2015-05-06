@@ -27,7 +27,6 @@
 #include <iostream>
 /*----------------------------------------------------------------------------*/
 
-
 //------------------------------------------------------------------------------
 // Plugin exit function called by the PluginManager when doing cleanup
 //------------------------------------------------------------------------------
@@ -35,7 +34,6 @@ int32_t ExitFunc()
 {
   return 0;  
 }
-
 
 //------------------------------------------------------------------------------
 // Plugin registration entry point called by the PluginManager
@@ -62,7 +60,6 @@ PF_ExitFunc PF_initPlugin(const PF_PlatformServices* services)
   return ExitFunc;
 }
 
-
 //------------------------------------------------------------------------------
 // Static plugin interface - create object 
 //------------------------------------------------------------------------------
@@ -79,12 +76,9 @@ void* PluginLayer1::Create(PF_PlatformServices* services)
     return NULL;
   }
   
-  if (discover.lowerLayer)
-    lowerLayer = static_cast<LayerInterface*>(discover.lowerLayer);
-  
+  lowerLayer = static_cast<LayerInterface*>(discover.ptrService);
   return new PluginLayer1(lowerLayer);
 }
-
 
 //------------------------------------------------------------------------------
 // Static plugin interface - destroy object
@@ -99,7 +93,6 @@ PluginLayer1::Destroy(void* obj)
   return 0;
 }
 
-
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
@@ -110,7 +103,6 @@ PluginLayer1::PluginLayer1(LayerInterface* lowerLayer):
   // empty
 }
 
-
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
@@ -118,7 +110,6 @@ PluginLayer1::~PluginLayer1()
 {
   // empty
 }
-
 
 //------------------------------------------------------------------------------
 // MethodCall implementation

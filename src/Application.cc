@@ -21,7 +21,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  ************************************************************************/
 
-
 /*----------------------------------------------------------------------------*/
 #include <iostream>
 /*----------------------------------------------------------------------------*/
@@ -29,7 +28,6 @@
 #include "LayerInterface.hh"
 #include "PluginManager.hh"
 /*----------------------------------------------------------------------------*/
-
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -39,7 +37,6 @@ Application::Application()
   // empty
 }
 
-
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
@@ -47,7 +44,6 @@ Application::~Application()
 {
   // empty
 }
-
 
 //------------------------------------------------------------------------------
 // Get instance
@@ -59,20 +55,19 @@ Application::GetInstance()
   return app;
 }
 
-
 //------------------------------------------------------------------------------
 // Initialize the plugin stack
 //------------------------------------------------------------------------------
 void
 Application::InitPluginStack()
 {
-  PluginManager& pm = PluginManager::GetInstance();
+  pf::PluginManager& pm = pf::PluginManager::GetInstance();
   auto obj_map = pm.GetRegistrationMap();
   LayerInterface* layer_imp = static_cast<LayerInterface*>(0);
     
-  for (auto plugin = obj_map.begin(); plugin != obj_map.end(); ++plugin)
+  for (auto&& plugin: obj_map)
   {
-    PF_Plugin_Layer layer = plugin->second.layer;
+    PF_Plugin_Layer layer = plugin.second.layer;
     
     if (mLayerImp.count(layer))
     {
@@ -80,7 +75,7 @@ Application::InitPluginStack()
       continue;
     }
     
-    layer_imp = static_cast<LayerInterface*>(pm.CreateObject(plugin->first));
+    layer_imp = static_cast<LayerInterface*>(pm.CreateObject(plugin.first));
     mLayerImp[layer] = layer_imp;
   }
 }
